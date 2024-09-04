@@ -1,4 +1,4 @@
-# Park&Ride Backend API
+# Park&Ride Backend API (工地)
 
 ## 1. 项目介绍
 IHELP Project
@@ -10,72 +10,50 @@ IHELP Project
 
 ## 2. 项目结构
 
-## 2. 项目结构
-
-- app/
-    - main.py
-    - routers/
-        - stations.py
-- data/
-    - station.parquet
-    - station_geo.parquet
-    - parking_lots.parquet
-- data_backend/
-- test/
-- README.md
-- requirements.txt
-
-
-
-
-
-
-
+```
+Park&Ride Backend API
+├── app
+│ ├── routers
+│ │ └── stations.py
+│ ├── test
+│ │ └── test_main.py
+│ └── main.py
+├── data_backend
+│ └── create_parkinglot.py
+| └── create_station_geocoord.py
+| └── create_location.py
+| └── read_carpark_api.py
+├── data
+│ ├── 486.json
+│ ├── 487.json
+│ ├── ...
+│ ├── parking_lots.parquet
+│ ├── station.parquet
+│ └── station_geo.parquet
+├── test
+│ └── test_stations.py
+|── conftest.md
+├── pyproject.toml
+|── README.md
+└── requirements.txt
+```
 
 ## 3. 项目依赖
 请见requirements.txt
 
 
 
-## 4. 项目配置
+## 4. 项目运行
 当前在app文件夹下使用`python -m fastapi dev main.py`启动fastapi web api服务。
 本地浏览器使用http://127.0.0.1:8000/docs 访问API文档。
 
 
-
-## 5. 项目部署
-
-
-
-## 6. 项目维护
-
-
-
-## 7. 项目文档
-
-
-
-## 8. 项目贡献
-
-
-## 9. 项目反馈
-
-
-
-## 10. 项目许可
-
-
-
-## 11. 项目版本
-
-
-## 12. 项目作者
-
-
-## 13. TODO List
+## 5. TODO List
 1. 会出现某个车站的空余车位数为负数的情况，例如 facility_id 486
-![alt text](image.png)
-
+![alt text](image.png)；暂时不太像数据问题
 2. 各车站Zone信息会提供更精确的停车位信息，可以进一步利用
 3. 增加停车位json数据读取函数，同时保留读取parquet文件能力
 4. Timestap使用原始数据中的时间戳会更用户友好
+5. 使用ttl cache减少后台IO及计算
+
+

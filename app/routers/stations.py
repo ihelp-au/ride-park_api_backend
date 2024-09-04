@@ -3,11 +3,11 @@ Provide API functions under /stations
 """
 
 from enum import Enum
-from typing import Any, Self, List, Tuple, Dict
+from typing import Any, List, Tuple, Dict
+import os
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter
 from pydantic.dataclasses import dataclass
-import os
 import polars as pl
 
 router_station = APIRouter(prefix="/stations", tags=["station"])
@@ -17,15 +17,17 @@ class DataSource(Enum):
     """
     Data source enum for station info function - JSON or PARQUET
     """
+
     JSON = "json"
     PARQUET = "parquet"
 
 
 @dataclass
-class StationInfo():
+class StationInfo:
     """
     class for station information
     """
+
     station_id: str
     short_name: str
     full_name: str
@@ -52,7 +54,7 @@ class StationInfo():
         """
         rlt_dict = self.__dict__
         del rlt_dict["__pydantic_initialised__"]
-        return rlt_dict
+        return {self.station_id: rlt_dict}
 
 
 def create_stationinfo_from_polars_row(row: tuple) -> StationInfo:
@@ -78,9 +80,10 @@ def create_stationinfo_from_polars_row(row: tuple) -> StationInfo:
 
 
 def return_stationinfo_dataframe_from_json(
-        station_geo_filename: str = "../data/station_geo.parquet",
-        station_filename: str = "../data/station.parquet",
-        parking_lots_dir: str = "../data/") -> pl.DataFrame:
+    station_geo_filename: str = "../data/station_geo.parquet",
+    station_filename: str = "../data/station.parquet",
+    parking_lots_dir: str = "../data/",
+) -> pl.DataFrame:
     """Load station info from parquet files and parking lot info from JSON files in a directory
 
     Args:
@@ -100,38 +103,21 @@ def return_stationinfo_dataframe_from_json(
 
     for json_file in os.listdir(parking_lots_dir):
         if json_file.endswith(".json"):
-
-            df: pl.DataFrame = pl.read_json(os.path.join(parking_lots_dir,
-                                                         json_file))
+            df: pl.DataFrame = pl.read_json(os.path.join(parking_lots_dir, json_file))
             parking_lots_dfs.append(df)
-
-            # with open(os.path.join(parking_lots_dir, json_file),
-            #           'r',
-            #           encoding='utf8') as f:
-
-            # parking_lots_info: dict[str, Any] = json.load(f)
-            # parking_lots_list.append(parking_lots_info)
-    # parking_lots_list.append(json.load(f))
-    # df_parking: pl.DataFrame = pl.read_json("../data/")
-
     df_parking: pl.DataFrame = pl.concat(parking_lots_dfs)
 
-    # print(df_parking)
-
-    df: pl.DataFrame =\
-        df_station.join(other=df_geo,
-                        on="facility_id",
-                        how="left")\
-        .join(other=df_parking,
-              on="facility_id",
-              how="left")
+    df: pl.DataFrame = df_station.join(other=df_geo, on="facility_id", how="left").join(
+        other=df_parking, on="facility_id", how="left"
+    )
     return df
 
 
 def return_stationinfo_dataframe_from_parquet(
-        station_geo_filename: str = "../data/station_geo.parquet",
-        station_filename: str = "../data/station.parquet",
-        parking_lots_filename: str = "../data/parking_lots.parquet") -> pl.DataFrame:
+    station_geo_filename: str = "../data/station_geo.parquet",
+    station_filename: str = "../data/station.parquet",
+    parking_lots_filename: str = "../data/parking_lots.parquet",
+) -> pl.DataFrame:
     """Load station info from parquet files and parking lot info from JSON files in a directory
 
     Args:
@@ -146,13 +132,9 @@ def return_stationinfo_dataframe_from_parquet(
     df_station: pl.DataFrame = pl.read_parquet(station_filename)
     df_parking: pl.DataFrame = pl.read_parquet(parking_lots_filename)
 
-    df: pl.DataFrame =\
-        df_station.join(other=df_geo,
-                        on="facility_id",
-                        how="left")\
-        .join(other=df_parking,
-              on="facility_id",
-              how="left")
+    df: pl.DataFrame = df_station.join(other=df_geo, on="facility_id", how="left").join(
+        other=df_parking, on="facility_id", how="left"
+    )
     return df
 
 
@@ -181,8 +163,8 @@ def get_stations_dict() -> JSONResponse:
             Dict[str, Any]: The schema and sample response is
 
             {
-                "parking_slots": [
-                    {
+                "parking_slots": {
+                    "486" : {
                         "station_id": "486",
                         "short_name": "Ashfield",
                         "full_name": "AshfieldCarPark",
@@ -192,7 +174,7 @@ def get_stations_dict() -> JSONResponse:
                         "occupied": 0,
                         "timestamp": "2024-09-04T20:09:02"
                     },
-                    {
+                    "487" : {
                         "station_id": "487",
                         "short_name": "Kogarah",
                         "full_name": "SYD319 Kogarah Park and Ride",
@@ -202,9 +184,9 @@ def get_stations_dict() -> JSONResponse:
                         "occupied": 1,
                         "timestamp": "2024-09-04T20:09:02"
                     }
-                ]
+                }
             }
-        """
+    """
     df: pl.DataFrame = return_stationinfo(source=DataSource.JSON)
 
     stations: List[StationInfo] = []
@@ -213,12 +195,32 @@ def get_stations_dict() -> JSONResponse:
         station: StationInfo = create_stationinfo_from_polars_row(row)
         stations.append(station)
 
-    content: dict[str, list[dict[str, Any]]] = {
-        "parking_slots": [station.to_dict() for station in stations]
+    content: Dict[str, Dict[str, Any]] = {
+        "parking_lost": generate_parking_slots_dict(stations)
     }
+
     return JSONResponse(content=content, status_code=200)
 
 
-if __name__ == "__main__":
-    df: pl.DataFrame = return_stationinfo(source=DataSource.JSON)
-    print(df)
+def generate_parking_slots_dict(stations: List[StationInfo]) -> Dict[str, Any]:
+    """Generate a dictionary containing station info for each station.
+
+    The dictionary will have the following structure:
+    {
+        station_id_1: {station_info_1},
+        station_id_2: {station_info_2},
+        ...
+    }
+    where each station_info is a dictionary containing the details for that station.
+
+    Args:
+        stations (List[StationInfo]): A list of stationinfo container
+
+    Returns:
+        Dict[str, Any]: Dictionary contains station info with station ids as keys
+    """
+    station_dict = {}
+    for station in stations:
+        station_dict.update(station.to_dict())
+
+    return station_dict

@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "ride & park info"
+version = "0.1.0"
+description = "Provide station parking availability information based on NSW Transportation Open API."
+authors = ["Frank Yang <syyang2007@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "0.112.2"
+folium = "0.17.0"
+geopy = "2.4.1"
+pandas = "2.1.4"
+polars = "0.20.31"
+requests = "2.25.0"
+rich = "13.3.5"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

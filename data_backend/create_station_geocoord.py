@@ -1,6 +1,6 @@
 from requests import Response
 from read_carpark_api import extract_carpark
-from typing import List, Dict, Tuple
+from typing import List, Dict, Any
 import pandas as pd
 import json
 
@@ -22,11 +22,25 @@ def create_geo_coord():
         if response.status_code != 200:
             continue
 
-        rlt = json.loads(response.text)
+        rlt: Dict[str, Any] = json.loads(response.text)
 
-        locations.append({**rlt["location"], "facility_id": id})
+        record: Dict[str, Any] = {
+            "facility_id": id,
+            "full_name": rlt["zones"][0]["zone_name"],
+            "short_name": rlt["location"]["suburb"],
+            "address": rlt["location"]["address"],
+            "latitude": rlt["location"]["latitude"],
+            "longitude": rlt["location"]["longitude"],
+        }
+
+        locations.append(record)
 
     df = pd.DataFrame(locations)
+
+    # Convert latitude and longitude to float
+    df["latitude"] = df["latitude"].astype(float)
+    df["longitude"] = df["longitude"].astype(float)
+
     df.to_parquet("data//station_geo.parquet")
 
 

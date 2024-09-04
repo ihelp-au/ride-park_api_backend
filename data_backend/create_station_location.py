@@ -2,7 +2,6 @@
 # Columns includes facility_id, station name, latitude, longitude
 
 from read_carpark_api import extract_carpark
-from typing import Dict
 import pandas as pd
 import json
 

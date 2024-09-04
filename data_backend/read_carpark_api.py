@@ -6,15 +6,11 @@ API: https://api.transport.nsw.gov.au/v1/carpark
 TOKEW: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI4WlZsMm5ENTdYYXVGLXJZSXRzUWYzNnhJdGdUUURSOHVzOHZWWGJYRUFRIiwiaWF0IjoxNzI0NDU3ODQ0fQ.MeUI_yOnPI3Tj5izgGGDP2DEvZmEoXb7eF56Ee_Bm7Y
 """
 
-import json
-from rich import print as pprint
 from rich import print_json
-from typing import Dict, Any
-import pandas as pd
 import requests
 
 API = "https://api.transport.nsw.gov.au/v1/carpark"
-NSW_TRANSPORT_OPEN_DATA_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI4WlZsMm5ENTdYYXVGLXJZSXRzUWYzNnhJdGdUUURSOHVzOHZWWGJYRUFRIiwiaWF0IjoxNzI0NDU3ODQ0fQ.MeUI_yOnPI3Tj5izgGGDP2DEvZmEoXb7eF56Ee_Bm7Y"
+NSW_TRANSPORT_OPEN_DATA_TOKEN: str = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJqdGkiOiI4WlZsMm5ENTdYYXVGLXJZSXRzUWYzNnhJdGdUUURSOHVzOHZWWGJYRUFRIiwiaWF0IjoxNzI0NDU3ODQ0fQ.MeUI_yOnPI3Tj5izgGGDP2DEvZmEoXb7eF56Ee_Bm7Y"
 
 
 def extract_carpark(carpark: str = "") -> requests.Response:

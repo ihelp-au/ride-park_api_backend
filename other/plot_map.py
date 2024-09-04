@@ -25,7 +25,7 @@ def generate_map(df: pd.DataFrame):
         folium.Marker(
             location=[row["latitude"], row["longitude"]],
             tooltip=f"{row['station_name']}\n total: {row['total']:.0f}\n available:{row['available']:.0f}",
-            icon=folium.Icon(icon='train', prefix='fa'),
+            icon=folium.Icon(icon="train", prefix="fa"),
         ).add_to(m)
 
     m.save("map//station_map.html")

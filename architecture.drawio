@@ -1,0 +1,46 @@
+<mxfile host="65bd71144e">
+    <diagram id="eIlbh1QzlnZPnPslwl6P" name="Page-1">
+        <mxGraphModel dx="1066" dy="614" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="2" value="NSW Transport Open Data API" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="544" width="500" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="3" value="Backend Python FastAPI&lt;br&gt;&lt;br&gt;&lt;br&gt;" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="380" width="500" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="4" value="" style="shape=flexArrow;endArrow=classic;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="90" y="375" as="sourcePoint"/>
+                        <mxPoint x="90" y="285" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="90" y="335"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="5" value="" style="shape=flexArrow;endArrow=classic;html=1;" edge="1" parent="1">
+                    <mxGeometry width="50" height="50" relative="1" as="geometry">
+                        <mxPoint x="320" y="370" as="sourcePoint"/>
+                        <mxPoint x="320" y="290" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="7" value="/list&amp;nbsp;&lt;br&gt;JSON, Ride &amp;amp; Park information in a list&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="340" y="290" width="200" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="8" value="/map&lt;br&gt;JSON, Ride &amp;amp; Park information containing geo coordinates" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="110" y="290" width="180" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="9" value="Front End&amp;nbsp; React" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="200" width="500" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="10" value="File Cache Layer" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+                    <mxGeometry x="100" y="460" width="430" height="50" as="geometry"/>
+                </mxCell>
+                <mxCell id="12" value="Ride &amp;amp; Park Block Diagram&amp;nbsp;" style="rounded=0;whiteSpace=wrap;html=1;strokeColor=none;" vertex="1" parent="1">
+                    <mxGeometry x="60" y="120" width="500" height="60" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

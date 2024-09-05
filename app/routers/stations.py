@@ -2,13 +2,15 @@
 Provide API functions under /stations
 """
 
+from cachetools import cached, TTLCache
 from enum import Enum
-from typing import Any, List, Tuple, Dict
+from typing import Any, List, Dict
 import os
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter
-from pydantic.dataclasses import dataclass
 import polars as pl
+from app.stationinfo import StationInfo, create_stationinfo_from_polars_row
+
 
 router_station = APIRouter(prefix="/stations", tags=["station"])
 
@@ -20,63 +22,6 @@ class DataSource(Enum):
 
     JSON = "json"
     PARQUET = "parquet"
-
-
-@dataclass
-class StationInfo:
-    """
-    class for station information
-    """
-
-    station_id: str
-    short_name: str
-    full_name: str
-    address: str
-    coordinates: Tuple[float, float]
-    total: int
-    available: int
-    occupied: int
-    timestamp: str
-
-    def annouce(self) -> str:
-        """Return a string describing the station availability briefly
-
-        Returns:
-            str: _description_
-        """
-        return f"The station {self.short_name} has {self.available} available slots"
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Return a dictionary representation of the station info
-
-        Returns:
-            Dict[str, Any]: _description_
-        """
-        rlt_dict = self.__dict__
-        del rlt_dict["__pydantic_initialised__"]
-        return {self.station_id: rlt_dict}
-
-
-def create_stationinfo_from_polars_row(row: tuple) -> StationInfo:
-    """create a StationInfo class from a polars row
-
-    Args:
-        row (tuple): polars row
-
-    Returns:
-        Self: StationInfo class
-    """
-    return StationInfo(
-        station_id=row[0],
-        short_name=row[3],
-        full_name=row[2],
-        address=row[4],
-        coordinates=(row[5], row[6]),
-        available=row[9],
-        timestamp=row[10],
-        total=row[7],
-        occupied=row[8],
-    )
 
 
 def return_stationinfo_dataframe_from_json(
@@ -98,12 +43,12 @@ def return_stationinfo_dataframe_from_json(
     df_station: pl.DataFrame = pl.read_parquet(station_filename)
 
     # Read all JSON files in the directory and concatenate them into a single DataFrame
-
     parking_lots_dfs: List[pl.DataFrame] = []
 
     for json_file in os.listdir(parking_lots_dir):
         if json_file.endswith(".json"):
-            df: pl.DataFrame = pl.read_json(os.path.join(parking_lots_dir, json_file))
+            df: pl.DataFrame = pl.read_json(
+                os.path.join(parking_lots_dir, json_file))
             parking_lots_dfs.append(df)
     df_parking: pl.DataFrame = pl.concat(parking_lots_dfs)
 
@@ -127,6 +72,8 @@ def return_stationinfo_dataframe_from_parquet(
 
     Returns:
         pl.DataFrame: The merged dataframe
+
+    TODO: call the data_backend refresh function here?
     """
     df_geo: pl.DataFrame = pl.read_parquet(station_geo_filename)
     df_station: pl.DataFrame = pl.read_parquet(station_filename)
@@ -138,6 +85,8 @@ def return_stationinfo_dataframe_from_parquet(
     return df
 
 
+# set cache time to live as 120 seconds
+@cached(cache=TTLCache(maxsize=8192, ttl=120))
 def return_stationinfo(source: DataSource) -> pl.DataFrame:
     """
     A wrapper function to make the data source switch between json and parquet easier
@@ -149,7 +98,6 @@ def return_stationinfo(source: DataSource) -> pl.DataFrame:
         df: pl.DataFrame = return_stationinfo_dataframe_from_parquet()
 
     # remove stations where the timestamp is None
-
     df = df.filter(pl.col("timestamp").is_not_null())
     return df
 
@@ -219,7 +167,7 @@ def generate_parking_slots_dict(stations: List[StationInfo]) -> Dict[str, Any]:
     Returns:
         Dict[str, Any]: Dictionary contains station info with station ids as keys
     """
-    station_dict = {}
+    station_dict: Dict[str, Any] = {}
     for station in stations:
         station_dict.update(station.to_dict())
 

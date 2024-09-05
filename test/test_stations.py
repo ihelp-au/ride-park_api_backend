@@ -20,5 +20,5 @@ def test_read_stationinfo_json() -> None:
         station_filename="data/station.parquet",
         parking_lots_dir="data/",
     )
-    print(df)
+    print(df.columns)
     assert df.shape[0] > 10

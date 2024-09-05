@@ -5,16 +5,28 @@ import pandas as pd
 import json
 
 
-def create_geo_coord():
+def create_geo_coord(filename: str = "data//station.parquet") -> None:
+    """
+    create geographical coordinates parquet file for stations.
+
+    schema:
+
+    facilit_id: str
+    full_name: str
+    short_name: str
+    address: str
+    latitude: float
+    longitude: float
+    """
     # get a list of facility id
     # loop the facility id list, query api and find geo coordinates
     # write to coord dict
 
-    df_station: pd.DataFrame = pd.read_parquet("data//station.parquet")
+    df_station: pd.DataFrame = pd.read_parquet(filename)
 
     fid: List[str] = df_station["facility_id"].to_list()
 
-    locations = []
+    locations: list[Any] = []
 
     for id in fid:
         response: Response = extract_carpark(id)
@@ -26,13 +38,13 @@ def create_geo_coord():
 
         record: Dict[str, Any] = {
             "facility_id": id,
-            "full_name": rlt["zones"][0]["zone_name"],
+            # full_name does not make sense
+            "full_name": rlt["facility_name"],
             "short_name": rlt["location"]["suburb"],
             "address": rlt["location"]["address"],
             "latitude": rlt["location"]["latitude"],
             "longitude": rlt["location"]["longitude"],
         }
-
         locations.append(record)
 
     df = pd.DataFrame(locations)
@@ -40,7 +52,6 @@ def create_geo_coord():
     # Convert latitude and longitude to float
     df["latitude"] = df["latitude"].astype(float)
     df["longitude"] = df["longitude"].astype(float)
-
     df.to_parquet("data//station_geo.parquet")
 
 

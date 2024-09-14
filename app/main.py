@@ -1,13 +1,16 @@
 """
-The main file for FastAPI app.
+The main module for the FastAPI application.
 
-- /stations/... coverred by routers.stations module
+This module creates and configures the FastAPI app instance, including:
+- Defining the root endpoint ("/") which returns a simple welcome message
+- Including the router for the "/stations" endpoints from the `routers.stations` module
 
+The FastAPI app instance is created using the `create_app()` function and assigned to the `app` variable.
 """
 
 from typing import Dict, Any
 from fastapi import FastAPI
-import routers.stations
+import routers.stations  # pylint: disable=E0401
 
 
 def create_app() -> FastAPI:
@@ -25,9 +28,9 @@ def create_app() -> FastAPI:
         """The root endpoint; Currently returns a simple message
 
         Returns:
-            Dict[str, Any]: _description_
+            Dict[str, Any]: JSON object to return
         """
-        return {"message": "home page"}
+        return {"message": "Home page for Park Info project"}
 
     return main_app
 

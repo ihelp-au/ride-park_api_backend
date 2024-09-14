@@ -2,14 +2,14 @@
 Provide API functions under /stations
 """
 
-from cachetools import cached, TTLCache
-from enum import Enum
-from typing import Any, List, Dict
 import os
+from typing import Any, List, Dict
+from enum import Enum
+from cachetools import cached, TTLCache
 from fastapi.responses import JSONResponse
 from fastapi import APIRouter
 import polars as pl
-from app.stationinfo import StationInfo, create_stationinfo_from_polars_row
+from app.stationinfo import StationInfo
 
 
 router_station = APIRouter(prefix="/stations", tags=["station"])
@@ -47,8 +47,7 @@ def return_stationinfo_dataframe_from_json(
 
     for json_file in os.listdir(parking_lots_dir):
         if json_file.endswith(".json"):
-            df: pl.DataFrame = pl.read_json(
-                os.path.join(parking_lots_dir, json_file))
+            df: pl.DataFrame = pl.read_json(os.path.join(parking_lots_dir, json_file))
             parking_lots_dfs.append(df)
     df_parking: pl.DataFrame = pl.concat(parking_lots_dfs)
 
@@ -102,6 +101,49 @@ def return_stationinfo(source: DataSource) -> pl.DataFrame:
     return df
 
 
+def generate_parking_slots_dict(stations: List[StationInfo]) -> Dict[str, Any]:
+    """Generate a dictionary containing station info for each station.
+
+    The dictionary will have the following structure:
+    {
+        station_id_1: {station_info_1},
+        station_id_2: {station_info_2},
+        ...
+    }
+    where each station_info is a dictionary containing the details for that station.
+
+    Args:
+        stations (List[StationInfo]): A list of stationinfo container
+
+    Returns:
+        Dict[str, Any]: Dictionary contains station info with station ids as keys
+    """
+    station_dict: Dict[str, Any] = {}
+    for station in stations:
+        station_dict.update(station.to_dict())
+
+    return station_dict
+
+
+@cached(cache=TTLCache(maxsize=8192, ttl=120))
+def create_stationinfos() -> Dict[str, Any]:
+    """Return the dictionary representation of parking information
+    for all stations. Individual station could be indexed by facility id.
+
+    Returns:
+        Dict[str, Any]: {'parking_lots': {'id1': {station1}, 'id2': {station2}}}
+    """
+    df: pl.DataFrame = return_stationinfo(source=DataSource.JSON)
+
+    stations: List[StationInfo] = []
+
+    for row in df.iter_rows():
+        station: StationInfo = StationInfo.create_stationinfo_from_polars_row(row)
+        stations.append(station)
+
+    return {"parking_lots": generate_parking_slots_dict(stations)}
+
+
 @router_station.get("/")
 def get_stations_dict() -> JSONResponse:
     """Return a JSON response containing info for all stations
@@ -135,40 +177,13 @@ def get_stations_dict() -> JSONResponse:
                 }
             }
     """
-    df: pl.DataFrame = return_stationinfo(source=DataSource.JSON)
-
-    stations: List[StationInfo] = []
-
-    for row in df.iter_rows():
-        station: StationInfo = create_stationinfo_from_polars_row(row)
-        stations.append(station)
-
-    content: Dict[str, Dict[str, Any]] = {
-        "parking_lost": generate_parking_slots_dict(stations)
-    }
-
+    content: Dict[str, Dict[str, Any]] = create_stationinfos()
     return JSONResponse(content=content, status_code=200)
 
 
-def generate_parking_slots_dict(stations: List[StationInfo]) -> Dict[str, Any]:
-    """Generate a dictionary containing station info for each station.
-
-    The dictionary will have the following structure:
-    {
-        station_id_1: {station_info_1},
-        station_id_2: {station_info_2},
-        ...
-    }
-    where each station_info is a dictionary containing the details for that station.
-
-    Args:
-        stations (List[StationInfo]): A list of stationinfo container
-
-    Returns:
-        Dict[str, Any]: Dictionary contains station info with station ids as keys
-    """
-    station_dict: Dict[str, Any] = {}
-    for station in stations:
-        station_dict.update(station.to_dict())
-
-    return station_dict
+# response to http://127.0.0.1:8000/stations/?id=488
+@router_station.get("/announce/{station_id}")
+def make_station_announcement(station_id: str) -> str:
+    """Return a string containing the brief station parking lots availability info"""
+    stationinfos: Dict[str, Any] = create_stationinfos()
+    return f"""At station {stationinfos['parking_lots'][station_id]['short_name']}, there are {stationinfos['parking_lots'][station_id]['total']} parking lots and {stationinfos['parking_lots'][station_id]['available']} among them are available"""

@@ -1,6 +1,10 @@
+"""
+This module contains tests for the root and stations endpoints of the API.
+"""
+
 from typing import Any, Dict
-import requests
 import json
+import requests
 
 
 def test_root() -> None:

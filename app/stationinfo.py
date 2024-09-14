@@ -36,31 +36,32 @@ class StationInfo:
         """Return a dictionary representation of the station info
 
         Returns:
-            Dict[str, Any]: _description_
+            Dict[str, Any]: the dictionary representation to return
         """
         rlt_dict: Dict[str, Any] = self.__dict__
-        del rlt_dict["__pydantic_initialised__"]
+        if "__pydantic_initialised__" in rlt_dict:
+            del rlt_dict["__pydantic_initialised__"]
         return {self.station_id: rlt_dict}
 
+    @classmethod
+    def create_stationinfo_from_polars_row(cls, row: Tuple) -> "StationInfo":
+        """create a StationInfo instance from a polars row; The column
+        location matters (no column name index)
 
-def create_stationinfo_from_polars_row(row: tuple) -> StationInfo:
-    """create a StationInfo instance from a polars row; The column
-    location matters (no column name index)
+        Args:
+            row (tuple): polars row
 
-    Args:
-        row (tuple): polars row
-
-    Returns:
-        Self: StationInfo class
-    """
-    return StationInfo(
-        station_id=row[0],
-        short_name=row[3],
-        full_name=row[2],
-        address=row[4],
-        coordinates=(row[5], row[6]),
-        available=row[9],
-        timestamp=row[10],
-        total=row[7],
-        occupied=row[8],
-    )
+        Returns:
+            Self: StationInfo class
+        """
+        return StationInfo(
+            station_id=row[0],
+            short_name=row[3],
+            full_name=row[2],
+            address=row[4],
+            coordinates=(row[5], row[6]),
+            available=row[9],
+            timestamp=row[10],
+            total=row[7],
+            occupied=row[8],
+        )
